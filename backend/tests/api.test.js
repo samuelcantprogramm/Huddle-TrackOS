@@ -363,6 +363,18 @@ describe('Huddle TrackOS — Full-Stack API Integration Test Suite', () => {
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toMatch(/json/);
     });
+
+    it('GET /api/v1/activity scopes results for VA Specialists to their assigned client team', async () => {
+      const res = await request(app)
+        .get('/api/v1/activity')
+        .set('Authorization', `Bearer ${vaToken}`);
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.data)).toBe(true);
+      // Elena is not assigned to testClient, so testClient activities must NOT leak into Elena's feed
+      const clientIds = res.body.data.map(a => a.clientId).filter(Boolean);
+      expect(clientIds).not.toContain(testClientId);
+    });
   });
 
   describe('10. Client Deletion & Cascade Clean-up', () => {

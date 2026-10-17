@@ -1076,9 +1076,11 @@
         pageHeadingSubtitle.textContent = `Assigned tasks and deliverable handoffs for ${currentVaUser}.`;
       }
     } else if (viewName === 'history') {
-      pageHeadingTitle.textContent = 'Pipeline Activity & Audit Trail';
+      pageHeadingTitle.textContent = currentRole === 'va' ? 'Client Team Activity Trail' : 'Pipeline Activity & Audit Trail';
       if (pageHeadingSubtitle) {
-        pageHeadingSubtitle.textContent = 'Complete chronological audit log of VA submissions, Admin approvals, revisions, pings, and lifecycle milestones.';
+        pageHeadingSubtitle.textContent = currentRole === 'va'
+          ? `Activity trail and workflow milestones for ${currentVaUser}'s assigned client teams.`
+          : 'Complete chronological audit log of VA submissions, Admin approvals, revisions, pings, and lifecycle milestones.';
       }
     }
 
@@ -3520,9 +3522,38 @@
     }
   }
 
+  function getVaAssignedClients(vaName) {
+    const targetName = (vaName || currentVaUser || (currentUser ? currentUser.name : '') || '').toLowerCase().trim();
+    if (!targetName) return [];
+    return (clients || []).filter(c => {
+      return (c.stages || []).some(s => {
+        const sVa = (s.vaName || '').toLowerCase().trim();
+        return sVa && (sVa === targetName || targetName.includes(sVa) || sVa.includes(targetName));
+      });
+    });
+  }
+
+  function getVaTeamAuditLogs() {
+    if (currentRole !== 'va') return auditLogs;
+    const myClients = getVaAssignedClients(currentVaUser);
+    const myClientNames = new Set(myClients.map(c => (c.name || '').toLowerCase().trim()));
+    const myClientIds = new Set(myClients.map(c => String(c.id)));
+    const myVaName = (currentVaUser || (currentUser ? currentUser.name : '') || '').toLowerCase().trim();
+
+    return (auditLogs || []).filter(item => {
+      const itemClientName = (item.clientName || '').toLowerCase().trim();
+      const itemClientId = item.clientId ? String(item.clientId) : '';
+      const isClientInTeam = (itemClientId && myClientIds.has(itemClientId)) || (itemClientName && myClientNames.has(itemClientName));
+      const isDirectTarget = (item.targetVa || '').toLowerCase().trim() === myVaName;
+      const isActor = item.actor && item.actor.name && item.actor.name.toLowerCase().trim() === myVaName;
+      return isClientInTeam || isDirectTarget || isActor;
+    });
+  }
+
   function updateHistoryBadge() {
     if (!navHistoryBadge) return;
-    const todayCount = auditLogs.filter(e => e.dateCategory === 'Today').length;
+    const logs = getVaTeamAuditLogs();
+    const todayCount = logs.filter(e => e.dateCategory === 'Today').length;
     navHistoryBadge.textContent = todayCount;
     navHistoryBadge.style.display = todayCount > 0 ? 'inline-block' : 'none';
   }
@@ -3595,49 +3626,45 @@
         }
       });
 
-      // 2. Deliverable approvals & revisions from auditLogs
-      (auditLogs || []).forEach(log => {
-        const target = (log.targetVa || '').toLowerCase().trim();
-        const actor = (log.actor && log.actor.name ? log.actor.name : '').toLowerCase().trim();
-        if (target === myName || actor === myName) {
-          const notifId = `audit-${log.id}`;
-          if (log.type === 'approval') {
-            notifs.push({
-              id: notifId,
-              category: 'approval',
-              type: 'approval',
-              title: '✅ Deliverable Approved',
-              desc: `${log.clientName || 'Client'}: ${log.stageName || 'Deliverable'} passed QA review.`,
-              meta: log.clientName || '',
-              timestamp: log.timestamp || Date.now(),
-              isUrgent: false,
-              isUnread: !readIds.has(notifId),
-              action: () => {
-                readIds.add(notifId);
-                saveReadNotificationIds(readIds);
-                closeNotificationsDropdown();
-                switchView('va-portal');
-              }
-            });
-          } else if (log.type === 'revision') {
-            notifs.push({
-              id: notifId,
-              category: 'revision',
-              type: 'revision',
-              title: '↺ Revision Requested',
-              desc: log.details || `${log.clientName || 'Client'}: Review feedback requires updates.`,
-              meta: log.clientName || '',
-              timestamp: log.timestamp || Date.now(),
-              isUrgent: true,
-              isUnread: !readIds.has(notifId),
-              action: () => {
-                readIds.add(notifId);
-                saveReadNotificationIds(readIds);
-                closeNotificationsDropdown();
-                switchView('va-portal');
-              }
-            });
-          }
+      // 2. Deliverable approvals & revisions from client team auditLogs
+      getVaTeamAuditLogs().forEach(log => {
+        const notifId = `audit-${log.id}`;
+        if (log.type === 'approval') {
+          notifs.push({
+            id: notifId,
+            category: 'approval',
+            type: 'approval',
+            title: '✅ Deliverable Approved',
+            desc: `${log.clientName || 'Client'}: ${log.stageName || 'Deliverable'} passed QA review.`,
+            meta: log.clientName || '',
+            timestamp: log.timestamp || Date.now(),
+            isUrgent: false,
+            isUnread: !readIds.has(notifId),
+            action: () => {
+              readIds.add(notifId);
+              saveReadNotificationIds(readIds);
+              closeNotificationsDropdown();
+              switchView('va-portal');
+            }
+          });
+        } else if (log.type === 'revision') {
+          notifs.push({
+            id: notifId,
+            category: 'revision',
+            type: 'revision',
+            title: '↺ Revision Requested',
+            desc: log.details || `${log.clientName || 'Client'}: Review feedback requires updates.`,
+            meta: log.clientName || '',
+            timestamp: log.timestamp || Date.now(),
+            isUrgent: true,
+            isUnread: !readIds.has(notifId),
+            action: () => {
+              readIds.add(notifId);
+              saveReadNotificationIds(readIds);
+              closeNotificationsDropdown();
+              switchView('va-portal');
+            }
+          });
         }
       });
     } else {
@@ -3864,46 +3891,59 @@
   function populateHistoryFilters() {
     if (!historyFilterClientSelect || !historyFilterVaSelect) return;
 
+    // Filter available clients based on role
+    const availableClients = currentRole === 'va' ? getVaAssignedClients(currentVaUser) : clients;
+
     // Clients
     const currentClientVal = historyFilterClientSelect.value || 'all';
     historyFilterClientSelect.innerHTML = '<option value="all">All Clients</option>';
-    const clientNames = Array.from(new Set(clients.map(c => c.name))).sort();
+    const clientNames = Array.from(new Set(availableClients.map(c => c.name))).filter(Boolean).sort();
     clientNames.forEach(cName => {
       const opt = document.createElement('option');
       opt.value = cName;
       opt.textContent = cName;
       historyFilterClientSelect.appendChild(opt);
     });
-    historyFilterClientSelect.value = currentClientVal;
+    historyFilterClientSelect.value = clientNames.includes(currentClientVal) ? currentClientVal : 'all';
 
-    // VAs
+    // VAs (Teammates on these client pipelines)
     const currentVaVal = historyFilterVaSelect.value || 'all';
     historyFilterVaSelect.innerHTML = '<option value="all">All VAs</option>';
     const vaSet = new Set();
-    if (users && users.length > 0) {
-      users
-        .filter(u => u.role === 'va')
-        .forEach(u => {
-          const name = (u.full_name || u.fullName || u.name || '').trim();
-          if (name) vaSet.add(name);
+    
+    availableClients.forEach(c => {
+      if (c.stages) {
+        c.stages.forEach(s => {
+          if (s.vaName && s.vaName.trim()) vaSet.add(s.vaName.trim());
         });
-    }
-    clients.forEach(c => {
-      if (c.stages) c.stages.forEach(s => { if (s.vaName && s.vaName.trim()) vaSet.add(s.vaName.trim()); });
+      }
     });
-    Array.from(vaSet).sort().forEach(va => {
+
+    if (currentRole === 'admin') {
+      if (users && users.length > 0) {
+        users
+          .filter(u => u.role === 'va')
+          .forEach(u => {
+            const name = (u.full_name || u.fullName || u.name || '').trim();
+            if (name) vaSet.add(name);
+          });
+      }
+    }
+
+    const availableVas = Array.from(vaSet).sort();
+    availableVas.forEach(va => {
       const opt = document.createElement('option');
       opt.value = va;
       opt.textContent = va;
       historyFilterVaSelect.appendChild(opt);
     });
-    historyFilterVaSelect.value = currentVaVal;
+    historyFilterVaSelect.value = availableVas.includes(currentVaVal) ? currentVaVal : 'all';
   }
 
   function renderHistoryTab() {
     if (!historyTimelineStream) return;
 
-    let filtered = [...auditLogs];
+    let filtered = currentRole === 'va' ? [...getVaTeamAuditLogs()] : [...auditLogs];
 
     // Filter by search query
     if (historySearchQuery.trim()) {
@@ -3950,12 +3990,15 @@
         historyEmptyState.style.display = 'flex';
         const h3 = historyEmptyState.querySelector('h3');
         const p = historyEmptyState.querySelector('p');
-        if (auditLogs.length === 0) {
-          if (h3) h3.textContent = 'No audit trail events recorded yet';
-          if (p) p.textContent = 'Pipeline activity, deliverable submissions, admin reviews, and VA pings will appear here as work progresses.';
+        const teamLogs = currentRole === 'va' ? getVaTeamAuditLogs() : auditLogs;
+        if (teamLogs.length === 0) {
+          if (h3) h3.textContent = currentRole === 'va' ? 'No client team activity recorded yet' : 'No audit trail events recorded yet';
+          if (p) p.textContent = currentRole === 'va'
+            ? 'Workflow handoffs, deliverables, reviews, and pings for your assigned client teams will appear here.'
+            : 'Pipeline activity, deliverable submissions, admin reviews, and VA pings will appear here as work progresses.';
         } else {
           if (h3) h3.textContent = 'No audit trail events match your filters';
-          if (p) p.textContent = 'Try clearing your search terms or filter selections to view the complete pipeline history.';
+          if (p) p.textContent = 'Try clearing your search terms or filter selections to view your client team history.';
         }
       }
       if (historyPaginationFooter) historyPaginationFooter.style.display = 'none';
@@ -4165,14 +4208,18 @@
   }
 
   function exportHistoryJson() {
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(auditLogs, null, 2));
+    const toExport = currentRole === 'va' ? getVaTeamAuditLogs() : auditLogs;
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(toExport, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `va_trackos_audit_trail_${new Date().toISOString().slice(0, 10)}.json`);
+    const filename = currentRole === 'va'
+      ? `va_trackos_team_activity_${new Date().toISOString().slice(0, 10)}.json`
+      : `va_trackos_audit_trail_${new Date().toISOString().slice(0, 10)}.json`;
+    downloadAnchor.setAttribute('download', filename);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
-    showToast('Exported audit trail history JSON!', 'success');
+    showToast(currentRole === 'va' ? 'Exported client team activity JSON!' : 'Exported audit trail history JSON!', 'success');
   }
 
   function openLightboxUrl(url) {

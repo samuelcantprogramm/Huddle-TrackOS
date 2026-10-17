@@ -49,12 +49,33 @@ async function findAll(options = {}) {
     va = 'all',
     client = 'all',
     search = '',
+    assignedVaId = null,
+    assignedVaName = null,
     limit = 50,
     offset = 0
   } = options;
 
   const whereClauses = [];
   const params = [];
+
+  if (assignedVaId || assignedVaName) {
+    whereClauses.push(`(
+      client_id IN (
+        SELECT DISTINCT client_id 
+        FROM pipeline_stages 
+        WHERE (assigned_va_id IS NOT NULL AND assigned_va_id = ?) 
+           OR LOWER(assigned_va_name) = LOWER(?)
+      )
+      OR LOWER(target_va) = LOWER(?)
+      OR (actor_id IS NOT NULL AND actor_id = ?)
+    )`);
+    params.push(
+      Number(assignedVaId) || 0,
+      (assignedVaName || '').trim(),
+      (assignedVaName || '').trim(),
+      Number(assignedVaId) || 0
+    );
+  }
 
   if (actionType && actionType !== 'all') {
     whereClauses.push('action_type = ?');
@@ -116,10 +137,34 @@ async function findAll(options = {}) {
 }
 
 /**
- * Export all activity records as raw JSON array
+ * Export activity records as raw JSON array
  */
-async function getAllForExport() {
-  const rows = await db.query('SELECT * FROM activity_logs ORDER BY created_at DESC');
+async function getAllForExport(options = {}) {
+  const { assignedVaId = null, assignedVaName = null } = options;
+  let sql = 'SELECT * FROM activity_logs';
+  const params = [];
+
+  if (assignedVaId || assignedVaName) {
+    sql += ` WHERE (
+      client_id IN (
+        SELECT DISTINCT client_id 
+        FROM pipeline_stages 
+        WHERE (assigned_va_id IS NOT NULL AND assigned_va_id = ?) 
+           OR LOWER(assigned_va_name) = LOWER(?)
+      )
+      OR LOWER(target_va) = LOWER(?)
+      OR (actor_id IS NOT NULL AND actor_id = ?)
+    )`;
+    params.push(
+      Number(assignedVaId) || 0,
+      (assignedVaName || '').trim(),
+      (assignedVaName || '').trim(),
+      Number(assignedVaId) || 0
+    );
+  }
+
+  sql += ' ORDER BY created_at DESC';
+  const rows = await db.query(sql, params);
   return rows.map(r => ({
     id: `act-${r.id}`,
     timestamp: r.created_at ? new Date(r.created_at).toISOString() : '',
