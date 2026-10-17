@@ -201,14 +201,39 @@
             </svg>
           </button>
 
-          <!-- Activity & Pings Notification Bell Button -->
-          <button class="topbar-icon-btn" id="btn-topbar-pings" title="View Pipeline Activity History & Pings" aria-label="Notifications">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-            </svg>
-            <span class="notification-dot" id="topbar-ping-badge" style="display: none;"></span>
-          </button>
+          <!-- Activity & Pings Notification Bell Button & Popover -->
+          <div class="notifications-menu-wrapper" id="notifications-menu-wrapper" style="position: relative;">
+            <button class="topbar-icon-btn" id="btn-topbar-pings" title="Notifications & Activity" aria-label="Notifications" aria-haspopup="true" aria-expanded="false">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span class="notification-dot" id="topbar-ping-badge" style="display: none;"></span>
+            </button>
+
+            <!-- Notifications Dropdown Popover -->
+            <div class="notifications-dropdown-popover" id="notifications-dropdown-popover">
+              <div class="notifications-dropdown-header">
+                <div class="notifications-header-left">
+                  <span class="notifications-header-title">Notifications</span>
+                  <span class="notifications-unread-pill" id="notifications-unread-pill" style="display: none;">0 new</span>
+                </div>
+                <button type="button" class="notifications-action-btn" id="btn-mark-all-notifications-read">Mark all as read</button>
+              </div>
+              <div class="notifications-dropdown-list" id="notifications-dropdown-list">
+                <!-- Dynamically populated notification stream -->
+              </div>
+              <div class="notifications-dropdown-footer">
+                <button type="button" class="notifications-footer-btn" id="btn-view-all-notifications">
+                  <span>View All Activity History</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
 
           <!-- Primary "Add New Client" & "Register Member" Action (Admin only) -->
           <div class="topbar-actions admin-only" id="admin-topbar-actions">

@@ -173,6 +173,12 @@
   const navHistoryBadge = document.getElementById('nav-history-badge');
   const btnTopbarPings = document.getElementById('btn-topbar-pings');
   const topbarPingBadge = document.getElementById('topbar-ping-badge');
+  const notificationsMenuWrapper = document.getElementById('notifications-menu-wrapper');
+  const notificationsDropdownPopover = document.getElementById('notifications-dropdown-popover');
+  const notificationsDropdownList = document.getElementById('notifications-dropdown-list');
+  const notificationsUnreadPill = document.getElementById('notifications-unread-pill');
+  const btnMarkAllNotificationsRead = document.getElementById('btn-mark-all-notifications-read');
+  const btnViewAllNotifications = document.getElementById('btn-view-all-notifications');
 
   // Admin Topbar Controls
   const adminTopbarActions = document.getElementById('admin-topbar-actions');
@@ -3521,24 +3527,337 @@
     navHistoryBadge.style.display = todayCount > 0 ? 'inline-block' : 'none';
   }
 
-  function updatePingBadge() {
-    if (!topbarPingBadge) return;
+  // ==========================================================================
+  // Topbar Notifications Popover & Stream
+  // ==========================================================================
+  function formatNotificationTime(timestamp) {
+    if (!timestamp) return 'Just now';
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) return String(timestamp);
+    const diffSec = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (diffSec < 60) return 'Just now';
+    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+    if (diffSec < 604800) return `${Math.floor(diffSec / 86400)}d ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function getReadNotificationIds() {
+    try {
+      const stored = localStorage.getItem('trackos_read_notifications');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  function saveReadNotificationIds(set) {
+    try {
+      const arr = Array.from(set).slice(-150);
+      localStorage.setItem('trackos_read_notifications', JSON.stringify(arr));
+    } catch (e) {}
+  }
+
+  function getRecentNotifications() {
+    const notifs = [];
+    const readIds = getReadNotificationIds();
+
     if (currentRole === 'va') {
       const myName = (currentVaUser || (currentUser ? currentUser.name : '') || '').toLowerCase().trim();
-      const count = pings.filter(p => {
+
+      // 1. Pings for this VA Specialist
+      (pings || []).forEach(p => {
         const target = (p.targetVa || '').toLowerCase().trim();
-        return p.status === 'unread' && (!target || target === myName || myName.includes(target) || target.includes(myName));
-      }).length;
-      topbarPingBadge.textContent = count;
-      topbarPingBadge.style.display = count > 0 ? 'inline-block' : 'none';
-      if (count === 0) {
-        topbarPingBadge.classList.remove('has-new-ping');
-      }
+        const matches = !target || target === myName || myName.includes(target) || target.includes(myName);
+        if (matches) {
+          const notifId = `ping-${p.id}`;
+          const isUnread = p.status === 'unread' && !readIds.has(notifId);
+          notifs.push({
+            id: notifId,
+            rawId: p.id,
+            category: 'ping',
+            type: p.isUrgent ? 'urgent_ping' : 'ping',
+            title: p.isUrgent ? '🚨 Urgent Ping from Admin' : '🔔 Alert from Admin',
+            desc: p.message || `Priority update regarding ${p.clientName || 'task'}`,
+            meta: p.clientName ? `${p.clientName}${p.stageName ? ` · ${p.stageName}` : ''}` : '',
+            timestamp: p.timestamp || p.createdAt || Date.now(),
+            isUrgent: Boolean(p.isUrgent),
+            isUnread: isUnread,
+            action: () => {
+              acknowledgePing(p.id);
+              readIds.add(notifId);
+              saveReadNotificationIds(readIds);
+              closeNotificationsDropdown();
+              switchView('va-portal');
+              if (vaRecentPingsBox) vaRecentPingsBox.scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        }
+      });
+
+      // 2. Deliverable approvals & revisions from auditLogs
+      (auditLogs || []).forEach(log => {
+        const target = (log.targetVa || '').toLowerCase().trim();
+        const actor = (log.actor && log.actor.name ? log.actor.name : '').toLowerCase().trim();
+        if (target === myName || actor === myName) {
+          const notifId = `audit-${log.id}`;
+          if (log.type === 'approval') {
+            notifs.push({
+              id: notifId,
+              category: 'approval',
+              type: 'approval',
+              title: '✅ Deliverable Approved',
+              desc: `${log.clientName || 'Client'}: ${log.stageName || 'Deliverable'} passed QA review.`,
+              meta: log.clientName || '',
+              timestamp: log.timestamp || Date.now(),
+              isUrgent: false,
+              isUnread: !readIds.has(notifId),
+              action: () => {
+                readIds.add(notifId);
+                saveReadNotificationIds(readIds);
+                closeNotificationsDropdown();
+                switchView('va-portal');
+              }
+            });
+          } else if (log.type === 'revision') {
+            notifs.push({
+              id: notifId,
+              category: 'revision',
+              type: 'revision',
+              title: '↺ Revision Requested',
+              desc: log.details || `${log.clientName || 'Client'}: Review feedback requires updates.`,
+              meta: log.clientName || '',
+              timestamp: log.timestamp || Date.now(),
+              isUrgent: true,
+              isUnread: !readIds.has(notifId),
+              action: () => {
+                readIds.add(notifId);
+                saveReadNotificationIds(readIds);
+                closeNotificationsDropdown();
+                switchView('va-portal');
+              }
+            });
+          }
+        }
+      });
     } else {
-      // ADMIN: Admin is the sender who oversees pipelines; never show incoming unread ping badges to Admin
-      topbarPingBadge.textContent = '0';
-      topbarPingBadge.style.display = 'none';
+      // ADMIN
+      // 1. Pending Deliverables awaiting Admin QA review
+      (clients || []).forEach(c => {
+        (c.stages || []).forEach((stg, idx) => {
+          if (stg.status === 'in_review') {
+            const notifId = `pending-review-${c.id}-${idx}`;
+            notifs.push({
+              id: notifId,
+              category: 'review',
+              type: 'review_pending',
+              title: '⏳ Deliverable Awaiting QA Review',
+              desc: `${stg.vaName || 'Specialist'} submitted proof for ${c.name} (${stg.role || `Stage ${idx + 1}`})`,
+              meta: c.name,
+              timestamp: stg.submittedAt || c.updatedAt || Date.now(),
+              isUrgent: false,
+              isUnread: !readIds.has(notifId),
+              action: () => {
+                readIds.add(notifId);
+                saveReadNotificationIds(readIds);
+                closeNotificationsDropdown();
+                switchView('reviews');
+              }
+            });
+          }
+        });
+      });
+
+      // 2. Recent team activity and submissions from auditLogs
+      (auditLogs || []).slice(0, 15).forEach(log => {
+        const notifId = `audit-${log.id}`;
+        let title = 'Pipeline Activity';
+        let isUrgent = false;
+        let notifType = log.type || 'activity';
+
+        if (log.type === 'submission') {
+          title = '📋 Deliverable Submitted';
+          notifType = 'submission';
+        } else if (log.type === 'approval') {
+          title = '✅ Stage Approved';
+          notifType = 'approval';
+        } else if (log.type === 'revision') {
+          title = '↺ Revision Requested';
+          notifType = 'revision';
+        } else if (log.type === 'ping') {
+          title = `🔔 Ping Sent to ${log.targetVa || 'VA'}`;
+          notifType = 'ping';
+          isUrgent = Boolean(log.meta && log.meta.isUrgent);
+        } else if (log.type === 'client') {
+          title = '🏢 Client Created';
+          notifType = 'client';
+        }
+
+        notifs.push({
+          id: notifId,
+          category: log.type || 'activity',
+          type: notifType,
+          title: title,
+          desc: log.summary || log.details || (log.clientName ? `Client: ${log.clientName}` : 'Activity update'),
+          meta: log.clientName ? `${log.clientName}${log.stageName ? ` · ${log.stageName}` : ''}` : '',
+          timestamp: log.timestamp || Date.now(),
+          isUrgent: isUrgent,
+          isUnread: !readIds.has(notifId),
+          action: () => {
+            readIds.add(notifId);
+            saveReadNotificationIds(readIds);
+            closeNotificationsDropdown();
+            if (log.clientId) {
+              jumpToClient(log.clientId);
+            } else {
+              switchView('history');
+            }
+          }
+        });
+      });
+    }
+
+    // Sort by timestamp descending
+    notifs.sort((a, b) => {
+      const timeA = new Date(a.timestamp).getTime() || 0;
+      const timeB = new Date(b.timestamp).getTime() || 0;
+      return timeB - timeA;
+    });
+
+    return notifs;
+  }
+
+  let activeRecentNotifications = [];
+
+  function renderNotificationsDropdown() {
+    if (!notificationsDropdownList) return;
+    activeRecentNotifications = getRecentNotifications();
+    const unreadCount = activeRecentNotifications.filter(n => n.isUnread).length;
+
+    if (notificationsUnreadPill) {
+      notificationsUnreadPill.textContent = `${unreadCount} new`;
+      notificationsUnreadPill.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+    }
+
+    if (activeRecentNotifications.length === 0) {
+      notificationsDropdownList.innerHTML = `
+        <div class="notifications-empty-state">
+          <div class="notifications-empty-icon">🔔</div>
+          <div class="notifications-empty-title">All caught up!</div>
+          <div class="notifications-empty-subtitle">No notifications or recent activity right now.</div>
+        </div>
+      `;
+      return;
+    }
+
+    notificationsDropdownList.innerHTML = activeRecentNotifications.map((item, idx) => {
+      let iconClass = 'notif-icon-circle';
+      let iconChar = '⚡';
+
+      if (item.type === 'urgent_ping') {
+        iconClass += ' notif-icon-urgent';
+        iconChar = '🚨';
+      } else if (item.type === 'ping') {
+        iconClass += ' notif-icon-ping';
+        iconChar = '🔔';
+      } else if (item.type === 'review_pending') {
+        iconClass += ' notif-icon-review';
+        iconChar = '⏳';
+      } else if (item.type === 'approval') {
+        iconClass += ' notif-icon-approval';
+        iconChar = '✅';
+      } else if (item.type === 'revision') {
+        iconClass += ' notif-icon-revision';
+        iconChar = '↺';
+      } else if (item.type === 'submission') {
+        iconClass += ' notif-icon-submission';
+        iconChar = '📋';
+      } else if (item.type === 'client') {
+        iconClass += ' notif-icon-submission';
+        iconChar = '🏢';
+      }
+
+      return `
+        <div class="notification-item ${item.isUnread ? 'is-unread' : ''}" data-notif-idx="${idx}">
+          <div class="notification-icon-wrap">
+            <span class="${iconClass}">${iconChar}</span>
+          </div>
+          <div class="notification-item-body">
+            <div class="notif-title-row">
+              <span class="notif-title">${escapeHtml(item.title)}</span>
+              <span class="notif-time">${formatNotificationTime(item.timestamp)}</span>
+            </div>
+            <div class="notif-desc">${escapeHtml(item.desc)}</div>
+            ${item.meta ? `<div class="notif-meta">${escapeHtml(item.meta)}</div>` : ''}
+          </div>
+          ${item.isUnread ? '<span class="notif-unread-dot" title="Unread"></span>' : ''}
+        </div>
+      `;
+    }).join('');
+
+    // Attach click events to notification items
+    const renderedItems = notificationsDropdownList.querySelectorAll('.notification-item');
+    renderedItems.forEach(el => {
+      el.addEventListener('click', () => {
+        const idx = parseInt(el.getAttribute('data-notif-idx'), 10);
+        const notif = activeRecentNotifications[idx];
+        if (notif && typeof notif.action === 'function') {
+          notif.action();
+        }
+      });
+    });
+  }
+
+  function toggleNotificationsDropdown() {
+    if (!notificationsDropdownPopover) return;
+    closeUserDropdown();
+    const willOpen = !notificationsDropdownPopover.classList.contains('active');
+    if (willOpen) {
+      renderNotificationsDropdown();
+      notificationsDropdownPopover.classList.add('active');
+      if (btnTopbarPings) btnTopbarPings.setAttribute('aria-expanded', 'true');
+    } else {
+      closeNotificationsDropdown();
+    }
+  }
+
+  function closeNotificationsDropdown() {
+    if (!notificationsDropdownPopover) return;
+    notificationsDropdownPopover.classList.remove('active');
+    if (btnTopbarPings) btnTopbarPings.setAttribute('aria-expanded', 'false');
+  }
+
+  function markAllNotificationsRead() {
+    const notifs = getRecentNotifications();
+    const readIds = getReadNotificationIds();
+    notifs.forEach(n => {
+      readIds.add(n.id);
+      if (n.category === 'ping' && n.rawId) {
+        acknowledgePing(n.rawId);
+      }
+    });
+    saveReadNotificationIds(readIds);
+    updatePingBadge();
+    renderNotificationsDropdown();
+    showToast('All notifications marked as read', 'info');
+  }
+
+  function updatePingBadge() {
+    if (!topbarPingBadge) return;
+    const notifs = getRecentNotifications();
+    const unreadCount = notifs.filter(n => n.isUnread).length;
+
+    topbarPingBadge.textContent = String(unreadCount);
+    topbarPingBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+    if (unreadCount > 0) {
+      topbarPingBadge.classList.add('has-new-ping');
+    } else {
       topbarPingBadge.classList.remove('has-new-ping');
+    }
+
+    if (notificationsUnreadPill) {
+      notificationsUnreadPill.textContent = `${unreadCount} new`;
+      notificationsUnreadPill.style.display = unreadCount > 0 ? 'inline-block' : 'none';
     }
   }
 
@@ -4849,19 +5168,24 @@
     if (btnTopbarPings) {
       btnTopbarPings.addEventListener('click', (e) => {
         e.preventDefault();
-        if (currentRole === 'va') {
-          switchView('va-portal');
-          if (vaRecentPingsBox) {
-            vaRecentPingsBox.scrollIntoView({ behavior: 'smooth' });
-          }
-        } else {
-          switchView('history');
-          historyFilterType = 'ping';
-          if (historyFilterTypeSelect) historyFilterTypeSelect.value = 'ping';
-          historyCurrentPage = 1;
-          renderHistoryTab();
-          showToast('Filtered Activity History by VA Pings 🔔', 'info');
-        }
+        e.stopPropagation();
+        toggleNotificationsDropdown();
+      });
+    }
+
+    if (btnMarkAllNotificationsRead) {
+      btnMarkAllNotificationsRead.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        markAllNotificationsRead();
+      });
+    }
+
+    if (btnViewAllNotifications) {
+      btnViewAllNotifications.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeNotificationsDropdown();
+        switchView('history');
       });
     }
     cardKpiReviews.addEventListener('click', () => {
@@ -5475,6 +5799,7 @@
     if (btnUserAvatar && userDropdownPopover) {
       btnUserAvatar.addEventListener('click', (e) => {
         e.stopPropagation();
+        closeNotificationsDropdown();
         closeAllRowMenus();
         userDropdownPopover.classList.toggle('active');
         const isOpen = userDropdownPopover.classList.contains('active');
@@ -5511,6 +5836,9 @@
       if (userDropdownPopover && !e.target.closest('#user-menu-wrapper')) {
         closeUserDropdown();
       }
+      if (notificationsDropdownPopover && !e.target.closest('#notifications-menu-wrapper')) {
+        closeNotificationsDropdown();
+      }
       if (!e.target.closest('.row-menu-container')) {
         closeAllRowMenus();
       }
@@ -5520,6 +5848,7 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeUserDropdown();
+        closeNotificationsDropdown();
         closeAllRowMenus();
         closeModal();
         closeSubmitModal();
@@ -5668,6 +5997,9 @@
     shiftCalendarMonth: shiftCalendarMonth,
     jumpToClient: jumpToClient,
     previewPingSound: previewPingSound,
+    toggleNotificationsDropdown: toggleNotificationsDropdown,
+    closeNotificationsDropdown: closeNotificationsDropdown,
+    markAllNotificationsRead: markAllNotificationsRead,
     dismissIncomingPing: dismissIncomingPing,
     ackIncomingPingFromCard: ackIncomingPingFromCard,
     playVaNotificationPingSound: playVaNotificationPingSound,
