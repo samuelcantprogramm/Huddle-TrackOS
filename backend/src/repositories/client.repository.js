@@ -373,7 +373,7 @@ async function updateClientWithStages(id, clientData) {
     // 4. Update Pipeline deadline
     if (clientData.deadline) {
       await conn.query('UPDATE pipelines SET deadline = ? WHERE client_id = ?', [clientData.deadline, numericId]);
-      await conn.query('UPDATE calendar_events SET start_date = ? WHERE client_id = ? AND event_type = "deadline"', [clientData.deadline, numericId]);
+      await conn.query('UPDATE calendar_events SET start_date = ? WHERE client_id = ? AND event_type = ?', [clientData.deadline, numericId, 'deadline']);
     }
 
     // 5. If stages provided, replace pipeline stages cleanly

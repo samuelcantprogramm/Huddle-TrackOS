@@ -30,8 +30,8 @@ async function findAll(role = null) {
 
 async function create({ fullName, email, passwordHash, role, avatarInitials }) {
   const result = await db.query(
-    'INSERT INTO users (full_name, email, password_hash, role, status, avatar_initials) VALUES (?, ?, ?, ?, "active", ?)',
-    [fullName, email.toLowerCase(), passwordHash, role, avatarInitials]
+    'INSERT INTO users (full_name, email, password_hash, role, status, avatar_initials) VALUES (?, ?, ?, ?, ?, ?)',
+    [fullName, email.toLowerCase(), passwordHash, role, 'active', avatarInitials]
   );
   return findById(result.insertId);
 }
