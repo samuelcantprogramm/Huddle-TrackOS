@@ -1127,31 +1127,34 @@
         <div class="cal-event-details-grid">
           <div class="event-meta-card">
             <span class="meta-label">Target Deadline</span>
-            <div class="meta-value text-purple" id="cal-event-deadline-date">--</div>
+            <div class="meta-value" id="cal-event-deadline-date">--</div>
             <span class="meta-relative-badge" id="cal-event-countdown">--</span>
           </div>
           <div class="event-meta-card">
             <span class="meta-label">Work Progress</span>
             <div class="meta-value" id="cal-event-progress">0%</div>
-            <div class="progress-bar-track" style="margin-top: 6px;"><div class="progress-bar-fill fill-low" id="cal-event-progress-bar" style="width: 0%;"></div></div>
+            <div class="progress-bar-track" style="margin-top: 8px; height: 6px;">
+              <div class="progress-bar-fill fill-low" id="cal-event-progress-bar" style="width: 0%;"></div>
+            </div>
           </div>
         </div>
 
-        <div class="cal-event-section" style="margin-top: 1.25rem;">
-          <span class="meta-label">Assigned VA & Pipeline:</span>
+        <div class="cal-event-section" style="margin-top: 1.35rem;">
+          <span class="meta-label">Assigned VA & Pipeline Stages</span>
           <div class="cal-event-stages-list" id="cal-event-stages-list">
             <!-- Stages summary injected -->
           </div>
         </div>
 
         <div class="cal-event-section" id="cal-event-notes-wrapper" style="margin-top: 1.25rem;">
-          <span class="meta-label">Handoff Notes:</span>
-          <p class="cal-event-notes-text" id="cal-event-notes">No notes available.</p>
+          <span class="meta-label">Handoff Notes & Deliverables</span>
+          <div class="cal-event-notes-card">
+            <p class="cal-event-notes-text" id="cal-event-notes">No notes available.</p>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary btn-sm" id="btn-close-event-footer">Close</button>
-        <button type="button" class="btn btn-secondary btn-sm" id="btn-cal-jump-tracker">Open in Tracker</button>
         <button type="button" class="btn btn-primary btn-sm admin-only" id="btn-cal-edit-client">Edit Client & Deadline</button>
       </div>
     </div>

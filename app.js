@@ -2356,7 +2356,7 @@
       calEventStagesList.innerHTML = client.stages.map((stg, i) => {
         let statusTag = '';
         if (stg.status === 'completed') statusTag = '<span class="stage-pill pill-done">Done ✓</span>';
-        else if (stg.status === 'active') statusTag = '<span class="stage-pill pill-active">In Charge ●</span>';
+        else if (stg.status === 'active') statusTag = '<span class="stage-pill pill-active"><span class="pulse-dot"></span>In Charge</span>';
         else if (stg.status === 'in_review') statusTag = '<span class="stage-pill pill-review">In Review ⏳</span>';
         else if (stg.status === 'revision') statusTag = '<span class="stage-pill pill-revision">Revision ↺</span>';
         else statusTag = '<span class="stage-pill pill-queued">Queued</span>';
