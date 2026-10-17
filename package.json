@@ -1,18 +1,20 @@
 {
-  "name": "va-trackos",
+  "name": "huddle-trackos",
   "version": "1.0.0",
   "description": "Huddle TrackOS - Executive Client Workflows, VA Pipeline Tracker & Quality Assurance Hub",
   "main": "backend/src/server.js",
   "scripts": {
     "start": "node backend/src/server.js",
-    "build": "npm --prefix backend install",
-    "postinstall": "npm --prefix backend install",
     "dev": "nodemon backend/src/server.js",
+    "build": "npm install --omit=dev",
     "test": "npm --prefix backend test",
     "db:init": "node backend/scripts/init-db.js",
     "create:admin": "node backend/scripts/create-admin.js",
     "seed:users": "node backend/scripts/seed-users.js",
     "setup:db": "mysql -u root < sql/schema.sql"
+  },
+  "engines": {
+    "node": ">=18.0.0 <23.0.0"
   },
   "keywords": [
     "huddle-trackos",
@@ -20,6 +22,23 @@
     "mysql",
     "full-stack"
   ],
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.2.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.9.7",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.0",
+    "supertest": "^6.3.4"
+  },
   "author": "Huddle TrackOS Engineering",
   "license": "ISC"
 }
