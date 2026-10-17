@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Huddle TrackOS – Client VA Tracking Center</title>
+  <meta name="description" content="Executive admin panel and VA portal for tracking client pipelines, deliverables review, virtual assistant handoffs, and work percentage completion.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ========================================================
+       AUTHENTICATION PORTAL (Login & Register)
+       ======================================================== -->
+  <div class="auth-portal" id="auth-portal">
+    <div class="auth-container">
+      <!-- Brand Header -->
+      <div class="auth-brand">
+        <div class="brand-icon auth-brand-icon">
+          <img src="logo-mark.png" alt="Huddle TrackOS Logo" class="brand-logo-img">
+        </div>
+        <h1 class="auth-title">Huddle Track<span>OS</span></h1>
+        <p class="auth-subtitle">Executive Client Workflows, VA Pipeline Tracker & Quality Assurance Hub</p>
+      </div>
+
+      <!-- Auth Card -->
+      <div class="auth-card">
+        <div class="auth-card-header" style="text-align: center; margin-bottom: 1.25rem;">
+          <h2 class="auth-card-title" style="font-size: 1.15rem; font-weight: 600; color: var(--text-primary);">Sign In to Workspace</h2>
+          <p class="auth-form-desc" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.35rem;">
+            Enter your credentials to access your administrative operations hub or assigned VA workstations.
+          </p>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form id="auth-login-form" class="auth-form active">
+          <div class="form-group">
+            <label for="login-email">Email Address <span class="required">*</span></label>
+            <input type="email" id="login-email" placeholder="e.g. admin@vatrack.io" required autocomplete="username">
+          </div>
+
+          <div class="form-group" style="margin-top: 1rem;">
+            <label for="login-password">Password <span class="required">*</span></label>
+            <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-submit-login" style="margin-top: 1.35rem;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+            Sign In to Workspace
+          </button>
+        </form>
+
+        <div class="auth-demo-creds" style="margin-top: 1rem; padding: 0.75rem 0.85rem; background: var(--bg-surface-hover); border: 1px solid var(--border-subtle); border-radius: 8px; font-size: 0.76rem; color: var(--text-muted); line-height: 1.5; text-align: left;">
+          <div style="font-weight: 600; color: var(--text-secondary); margin-bottom: 0.35rem;">Default Demo Credentials:</div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem;">
+            <span>👑 <strong>Admin:</strong> <code style="color: var(--text-primary); background: var(--bg-input); border: 1px solid var(--border-medium); padding: 1px 4px; border-radius: 4px; font-weight: 600;">admin@vatrack.io</code></span>
+            <span>pw: <code style="color: var(--text-primary); background: var(--bg-input); border: 1px solid var(--border-medium); padding: 1px 4px; border-radius: 4px; font-weight: 600;">admin</code></span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>⚡ <strong>VA:</strong> <code style="color: var(--text-primary); background: var(--bg-input); border: 1px solid var(--border-medium); padding: 1px 4px; border-radius: 4px; font-weight: 600;">elena@vatrack.io</code></span>
+            <span>pw: <code style="color: var(--text-primary); background: var(--bg-input); border: 1px solid var(--border-medium); padding: 1px 4px; border-radius: 4px; font-weight: 600;">password123</code></span>
+          </div>
+        </div>
+
+        <div class="auth-card-hint" style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle); text-align: center; font-size: 0.78rem; color: var(--text-muted);">
+          <span>New team accounts are provisioned directly by workspace administrators.</span>
+        </div>
+      </div>
+
+      <!-- Auth Footer Note -->
+      <div class="auth-footer-text">
+        <span>Protected workspace session • Huddle TrackOS</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-layout" id="app-layout" style="display: none;">
+    <!-- Collapsible Sidebar Navigation (232px Slim, Google Classroom Drawer on Mobile) -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-left">
+          <div class="brand-icon">
+            <img src="logo-mark.png" alt="Huddle TrackOS Logo" class="brand-logo-img">
+          </div>
+          <div class="brand-text">
+            <h2>Huddle Track<span>OS</span></h2>
+          </div>
+        </div>
+        <button class="hamburger-btn sidebar-close-toggle" id="btn-sidebar-collapse" title="Collapse sidebar" aria-label="Collapse sidebar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-links">
+        <div class="nav-section-label admin-only" id="nav-tracker-section-label">Tracking</div>
+        <a href="#tracker" class="nav-item admin-only active" id="nav-tab-tracker">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span id="nav-tracker-text">Client Tracker</span>
+        </a>
+
+        <div class="nav-section-label va-only" id="nav-workstation-section-label">Workstation</div>
+        <a href="#va-portal" class="nav-item va-only" id="nav-tab-va-portal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <span>VA Tasks & Submit</span>
+          <span class="nav-counter-badge" id="nav-va-badge">0</span>
+        </a>
+
+        <div class="nav-section-label">Schedule & Activity</div>
+        <a href="#calendar" class="nav-item" id="nav-tab-calendar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span>Calendar</span>
+          <span class="nav-counter-badge" id="nav-calendar-badge">0</span>
+        </a>
+
+        <a href="#history" class="nav-item" id="nav-tab-history">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span>Activity History</span>
+          <span class="nav-counter-badge" id="nav-history-badge">0</span>
+        </a>
+
+        <div class="nav-section-label admin-only">Quality QA</div>
+        <a href="#reviews" class="nav-item admin-only" id="nav-tab-reviews">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span>Review Deliverables</span>
+          <span class="nav-counter-badge" id="nav-review-badge" style="display: none;">0</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-sync-badge" title="Local storage cache active and synchronized with database">
+          <span class="sync-dot"></span>
+          <span class="sync-status-text" id="storage-status-text">Synced locally</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Google Classroom Style Sidebar Backdrop Scrim -->
+    <div class="sidebar-scrim" id="sidebar-scrim" aria-hidden="true"></div>
+
+    <!-- Main Content Area -->
+    <main class="main-content" id="main-content">
+      <!-- Top Bar Header with Minimal Linear-style Layout -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger-btn" id="btn-toggle-sidebar" title="Toggle Sidebar" aria-label="Toggle Sidebar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="topbar-brand-mark" id="topbar-brand-mark">
+            <div class="brand-icon-sm">
+              <img src="logo-mark.png" alt="Huddle TrackOS Logo" class="brand-logo-img">
+            </div>
+            <span class="topbar-brand-title">Huddle Track<span>OS</span></span>
+          </div>
+          <div class="topbar-titles-box">
+            <h1 class="page-title" id="page-heading-title">Good evening, Admin</h1>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Audio Test / Volume Speaker Button (VA Specialist Workstation Only) -->
+          <button class="topbar-icon-btn" id="btn-topbar-sound-test" onclick="window.vaApp.previewPingSound()" title="Sound Notifications Active (Click to test chime)" aria-label="Test Sound Chime" style="display: none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+          </button>
+
+          <!-- Activity & Pings Notification Bell Button -->
+          <button class="topbar-icon-btn" id="btn-topbar-pings" title="View Pipeline Activity History & Pings" aria-label="Notifications">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span class="notification-dot" id="topbar-ping-badge" style="display: none;"></span>
+          </button>
+
+          <!-- Primary "Add New Client" & "Register Member" Action (Admin only) -->
+          <div class="topbar-actions admin-only" id="admin-topbar-actions">
+            <button class="btn btn-secondary admin-only" id="btn-topbar-register-user" title="Register New Team Member">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <line x1="19" y1="8" x2="19" y2="14"></line>
+                <line x1="22" y1="11" x2="16" y2="11"></line>
+              </svg>
+              <span>+ Member</span>
+            </button>
+            <button class="btn btn-primary" id="btn-open-add-modal">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              <span>Add New Client</span>
+            </button>
+          </div>
+
+          <!-- User Avatar & Popover Dropdown (Account Meta, Export, Logout) -->
+          <div class="user-menu-wrapper" id="user-menu-wrapper">
+            <button type="button" class="user-avatar-btn" id="btn-user-avatar" title="Account Settings" aria-haspopup="true" aria-expanded="false">
+              <div class="user-avatar-circle" id="topbar-user-avatar">AD</div>
+            </button>
+
+            <div class="user-dropdown-popover" id="user-dropdown-popover">
+              <div class="user-dropdown-header">
+                <div class="user-avatar-circle user-avatar-md" id="dropdown-user-avatar">AD</div>
+                <div class="user-dropdown-meta">
+                  <span class="user-dropdown-name" id="topbar-user-name">Admin</span>
+                  <span class="user-role-badge" id="topbar-user-role">ADMIN</span>
+                </div>
+              </div>
+
+              <div class="user-dropdown-divider"></div>
+
+              <!-- Register Team Member (Admin Only) -->
+              <button type="button" class="user-dropdown-item admin-only" id="btn-dropdown-register-user" title="Provision new Admin or VA account">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <line x1="19" y1="8" x2="19" y2="14"></line>
+                  <line x1="22" y1="11" x2="16" y2="11"></line>
+                </svg>
+                <span>Register Team Member</span>
+              </button>
+
+              <!-- Quick Export Dataset -->
+              <button type="button" class="user-dropdown-item" id="btn-quick-export" title="Export Client Dataset as JSON">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Export Dataset (JSON)</span>
+              </button>
+
+              <div class="user-dropdown-divider"></div>
+
+              <!-- Logout -->
+              <button type="button" class="user-dropdown-item text-danger" id="btn-logout" title="Sign out of your account">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ========================================================
+           VIEW 1: CLIENT TRACKER (Admin Main Table)
+           ======================================================== -->
+      <div class="view-panel" id="view-tracker">
+        <!-- Compact Single Stat Strip (One card, 4 columns divided by hairlines) -->
+        <section class="stat-strip-card">
+          <div class="stat-strip-item">
+            <span class="stat-strip-label">Active Clients</span>
+            <div class="stat-strip-value" id="kpi-total-clients">0</div>
+            <span class="stat-strip-sub">Total active accounts</span>
+          </div>
+
+          <div class="stat-strip-divider"></div>
+
+          <div class="stat-strip-item">
+            <span class="stat-strip-label">VAs In Charge</span>
+            <div class="stat-strip-value" id="kpi-vas-in-charge">0</div>
+            <span class="stat-strip-sub">Currently working</span>
+          </div>
+
+          <div class="stat-strip-divider"></div>
+
+          <div class="stat-strip-item stat-strip-actionable" id="card-kpi-reviews" title="Click to view pending reviews">
+            <span class="stat-strip-label">Pending Reviews</span>
+            <div class="stat-strip-value" id="kpi-pending-reviews">0</div>
+            <span class="stat-strip-sub stat-link-sub">Awaiting QA verification</span>
+          </div>
+
+          <div class="stat-strip-divider"></div>
+
+          <div class="stat-strip-item">
+            <span class="stat-strip-label">Avg Work Progress</span>
+            <div class="stat-strip-value" id="kpi-avg-progress">0%</div>
+            <span class="stat-strip-sub">Overall pipeline</span>
+          </div>
+        </section>
+
+        <!-- Search, Filters, and Table Container -->
+        <section class="table-container-card">
+          <!-- Filter Bar (No card border, pill-style dropdowns with consistent labels) -->
+          <div class="table-controls-bar">
+            <div class="search-box">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="search-input" placeholder="Search client, service, or VA..." autocomplete="off">
+              <kbd class="search-kbd-inline">⌘K</kbd>
+              <button class="search-clear-btn" id="search-clear-btn" title="Clear search" style="display: none;">&times;</button>
+            </div>
+
+            <div class="filters-group">
+              <div class="filter-pill-wrapper">
+                <select id="filter-service" class="filter-pill-select" aria-label="Filter by Service">
+                  <option value="all">Service: All</option>
+                  <option value="Social Starter">Social Starter</option>
+                  <option value="Social Growth">Social Growth</option>
+                  <option value="Clinics Ops Lite">Clinics Ops Lite</option>
+                  <option value="Clinics Ops Standard">Clinics Ops Standard</option>
+                  <option value="Foundation Bundle">Foundation Bundle</option>
+                </select>
+              </div>
+
+              <div class="filter-pill-wrapper">
+                <select id="filter-va" class="filter-pill-select" aria-label="Filter by VA">
+                  <option value="all">VA: All</option>
+                </select>
+              </div>
+
+              <div class="filter-pill-wrapper">
+                <select id="filter-status" class="filter-pill-select" aria-label="Filter by Status">
+                  <option value="all">Status: All</option>
+                  <option value="in_review">Status: In Review</option>
+                  <option value="revision">Status: Revision</option>
+                  <option value="active">Status: In Charge</option>
+                  <option value="completed">Status: Completed</option>
+                </select>
+              </div>
+
+              <div class="filter-pill-wrapper">
+                <select id="sort-select" class="filter-pill-select" aria-label="Sort Clients">
+                  <option value="deadline-asc">Sort: Due soonest</option>
+                  <option value="date-desc">Sort: Newest first</option>
+                  <option value="name-asc">Sort: Client A–Z</option>
+                  <option value="progress-desc">Sort: Progress ↓</option>
+                  <option value="progress-asc">Sort: Progress ↑</option>
+                </select>
+              </div>
+
+              <button type="button" class="btn-clear-filters-link" id="btn-clear-filters" style="display: none;" title="Reset all filters">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <span>Clear filters</span>
+              </button>
+            </div>
+
+            <!-- Inline Timeline Legend on Table Right -->
+            <div class="table-meta-legend">
+              <span class="legend-chip"><span class="legend-dot dot-done"></span>Done</span>
+              <span class="legend-chip"><span class="legend-dot dot-active"></span>In Charge</span>
+              <span class="legend-chip"><span class="legend-dot dot-review"></span>Review</span>
+              <span class="legend-chip"><span class="legend-dot dot-revision"></span>Revision</span>
+              <span class="legend-chip"><span class="legend-dot dot-queued"></span>Queued</span>
+            </div>
+          </div>
+
+          <!-- Main Tracker Table (Hairline separators, no card-in-card, clean breathing room) -->
+          <div class="table-responsive" id="client-table-responsive">
+            <table class="va-tracker-table">
+              <thead>
+                <tr>
+                  <th class="col-client">Client</th>
+                  <th class="col-due">Due</th>
+                  <th class="col-va-section">VA Pipeline</th>
+                  <th class="col-progress">Progress</th>
+                  <th class="col-actions" id="col-actions-header">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="client-table-body">
+                <!-- Dynamically populated via app.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State Message -->
+          <div class="empty-state" id="empty-state" style="display: none;">
+            <div class="empty-icon-box">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
+            <h3 id="empty-state-title">No client pipelines found</h3>
+            <p id="empty-state-desc">Your tracking dashboard is clean. Click below to add your first client pipeline.</p>
+            <div class="empty-state-actions" id="empty-state-actions">
+              <button class="btn btn-primary btn-sm admin-only" id="btn-empty-add-client">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Add New Client</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Pagination Footer -->
+          <div class="pagination-footer" id="client-pagination-footer">
+            <div class="pagination-info">
+              Showing <span id="page-start-idx">0</span>–<span id="page-end-idx">0</span> of <span id="total-clients-count">0</span>
+            </div>
+
+            <div class="pagination-controls">
+              <div class="page-size-selector">
+                <label for="page-size-select">Per page:</label>
+                <select id="page-size-select" class="page-size-select">
+                  <option value="5" selected>5</option>
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                </select>
+              </div>
+
+              <div class="pagination-nav-group">
+                <button class="btn-page-nav" id="btn-page-prev" title="Previous page" aria-label="Previous page">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+                <div class="pagination-pages" id="pagination-pages-container"></div>
+                <button class="btn-page-nav" id="btn-page-next" title="Next page" aria-label="Next page">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ========================================================
+           VIEW 2: ADMIN REVIEW QUEUE TAB
+           ======================================================== -->
+      <div class="view-panel" id="view-reviews" style="display: none;">
+        <div class="review-page-header">
+          <div class="review-filter-tabs">
+            <button class="review-tab-btn active" id="btn-filter-review-pending">Pending Review (<span id="count-pending-tab">0</span>)</button>
+            <button class="review-tab-btn" id="btn-filter-review-revision">Needs Revision (<span id="count-revision-tab">0</span>)</button>
+            <button class="review-tab-btn" id="btn-filter-review-approved">Approved History</button>
+            <button class="review-tab-btn" id="btn-filter-review-all">All Submissions</button>
+          </div>
+        </div>
+
+        <!-- Controls Bar for Review Queue (Filter by Progress, Client Name, VA, and Sort) -->
+        <div class="review-controls-card">
+          <div class="search-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="review-search-input" placeholder="Search by client name, VA, or deliverable..." autocomplete="off">
+            <button class="search-clear-btn" id="review-search-clear-btn" title="Clear search" style="display: none;">&times;</button>
+          </div>
+
+          <div class="filters-group">
+            <div class="filter-item">
+              <label for="review-filter-progress">Progress:</label>
+              <select id="review-filter-progress">
+                <option value="all">All Progress</option>
+                <option value="low">0% – 30%</option>
+                <option value="mid">31% – 70%</option>
+                <option value="high">71% – 99%</option>
+                <option value="complete">100% Completed</option>
+              </select>
+            </div>
+
+            <div class="filter-item">
+              <label for="review-filter-va">VA:</label>
+              <select id="review-filter-va">
+                <option value="all">All VAs</option>
+              </select>
+            </div>
+
+            <div class="filter-item">
+              <label for="review-sort-select">Sort By:</label>
+              <select id="review-sort-select">
+                <option value="newest">Newest First</option>
+                <option value="name-asc">Client Name (A-Z)</option>
+                <option value="progress-desc">Progress: High to Low</option>
+                <option value="progress-asc">Progress: Low to High</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review Cards Grid -->
+        <div class="review-cards-grid" id="review-cards-container">
+          <!-- Dynamically populated review cards -->
+        </div>
+
+        <!-- Review Empty State -->
+        <div class="empty-state" id="review-empty-state" style="display: none;">
+          <div class="empty-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 6v6l4 2"></path>
+            </svg>
+          </div>
+          <h3>No deliverables found matching your criteria</h3>
+          <p>Try clearing your search query or adjusting your progress filter.</p>
+          <button class="btn btn-secondary btn-sm" id="btn-clear-review-filters">Reset Review Filters</button>
+        </div>
+
+        <!-- Review Pagination Controls -->
+        <div class="pagination-footer" id="review-pagination-footer">
+          <div class="pagination-info">
+            Showing <span id="review-page-start-idx">0</span> to <span id="review-page-end-idx">0</span> of <span id="review-total-count">0</span> deliverables
+          </div>
+
+          <div class="pagination-controls">
+            <div class="page-size-selector">
+              <label for="review-page-size-select">Per page:</label>
+              <select id="review-page-size-select">
+                <option value="4" selected>4</option>
+                <option value="6">6</option>
+                <option value="12">12</option>
+              </select>
+            </div>
+
+            <div class="page-nav">
+              <button class="page-btn" id="btn-review-page-prev" title="Previous page">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                Prev
+              </button>
+              <div class="page-numbers" id="review-pagination-pages-container">
+                <!-- Page buttons injected via JS -->
+              </div>
+              <button class="page-btn" id="btn-review-page-next" title="Next page">
+                Next
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           VIEW 3: VA USER PORTAL (My Tasks & Submit Deliverables)
+           ======================================================== -->
+      <div class="view-panel" id="view-va-portal" style="display: none;">
+        <div class="va-portal-header">
+          <div class="va-portal-welcome">
+            <div class="va-logged-avatar" id="va-current-avatar">VA</div>
+            <div>
+              <div class="va-portal-tag">VA SPECIALIST WORKSTATION</div>
+              <h2 class="va-portal-name" id="va-portal-display-name">VA Specialist</h2>
+            </div>
+          </div>
+
+          <div class="va-user-selector-group" style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-va-portal-sound-test" onclick="window.vaApp.previewPingSound()" title="Live Ping Audio Status (Click to test chime)" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.45rem 0.75rem;">
+              <span class="audio-live-indicator-dot"></span>
+              <span>🔊 Ping Audio Active (Test)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- VA Active Pings Alert Box (Populated when Admin pings this VA) -->
+        <div id="va-recent-pings-box" style="display: none; margin-bottom: 1.5rem;"></div>
+
+        <!-- VA Tasks Grid -->
+        <div class="va-tasks-section">
+          <div class="va-section-title-bar">
+            <div>
+              <h3>Assigned Deliverables</h3>
+              <p>Active tasks and pipeline handoffs.</p>
+            </div>
+            <span class="badge-tag badge-tier-growth" id="va-active-task-count">0 Active Tasks</span>
+          </div>
+
+          <div class="va-tasks-grid" id="va-tasks-grid">
+            <!-- Dynamically populated VA task cards -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           VIEW 4: GOOGLE CALENDAR & DEADLINES HUB
+           ======================================================== -->
+      <div class="view-panel" id="view-calendar" style="display: none;">
+        <!-- Calendar Top Header Bar (Google Calendar Style) -->
+        <div class="calendar-topbar">
+          <div class="calendar-nav-left">
+            <button class="btn btn-secondary btn-sm" id="cal-btn-today">Today</button>
+            <div class="cal-nav-arrows">
+              <button class="cal-arrow-btn" id="cal-btn-prev" title="Previous Month">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              <button class="cal-arrow-btn" id="cal-btn-next" title="Next Month">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </div>
+            <h2 class="cal-current-month-year" id="cal-title">Calendar</h2>
+          </div>
+
+          <div class="calendar-nav-controls">
+            <!-- Filter by Service Type -->
+            <div class="cal-filter-item">
+              <label for="cal-filter-service">Service:</label>
+              <select id="cal-filter-service">
+                <option value="all">All Services</option>
+                <option value="Social Starter">Social Starter</option>
+                <option value="Social Growth">Social Growth</option>
+                <option value="Clinics Ops Lite">Clinics Ops Lite</option>
+                <option value="Clinics Ops Standard">Clinics Ops Standard</option>
+                <option value="Foundation Bundle">Foundation Bundle</option>
+              </select>
+            </div>
+
+            <!-- Filter by VA -->
+            <div class="cal-filter-item">
+              <label for="cal-filter-va">VA:</label>
+              <select id="cal-filter-va">
+                <option value="all">All VAs</option>
+              </select>
+            </div>
+
+            <!-- View Switcher (Month / Week / Agenda) -->
+            <div class="cal-view-modes">
+              <button class="cal-view-btn active" id="cal-view-month" data-mode="month">Month</button>
+              <button class="cal-view-btn" id="cal-view-week" data-mode="week">Week</button>
+              <button class="cal-view-btn" id="cal-view-agenda" data-mode="agenda">Agenda</button>
+            </div>
+
+            <!-- Add Deadline / Client button -->
+            <button class="btn btn-primary btn-sm admin-only" id="cal-btn-add-deadline">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              New Deadline
+            </button>
+          </div>
+        </div>
+
+        <!-- Calendar Main Layout (Sidebar + Main Grid) -->
+        <div class="calendar-workspace">
+          <!-- Calendar Mini Sidebar -->
+          <aside class="calendar-sidebar">
+            <!-- Mini Month Calendar Widget -->
+            <div class="mini-calendar-widget" id="mini-calendar-widget">
+              <!-- Rendered via JS -->
+            </div>
+
+            <!-- Upcoming Deadlines Feed -->
+            <div class="upcoming-deadlines-box">
+              <div class="sidebar-box-title">
+                <div class="sidebar-title-left">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span>Upcoming Deadlines</span>
+                </div>
+                <span class="deadline-count-chip" id="upcoming-deadlines-count">0</span>
+              </div>
+              <div class="deadlines-feed-list" id="deadlines-feed-list">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Service Color Legend -->
+            <div class="calendar-service-legend">
+              <div class="sidebar-box-title">Type of Service</div>
+              <div class="legend-color-item" data-service="Social Starter">
+                <span class="legend-dot-sq dot-social-starter"></span>
+                <span>Social Starter</span>
+              </div>
+              <div class="legend-color-item" data-service="Social Growth">
+                <span class="legend-dot-sq dot-social-growth"></span>
+                <span>Social Growth</span>
+              </div>
+              <div class="legend-color-item" data-service="Clinics Ops Lite">
+                <span class="legend-dot-sq dot-clinics-lite"></span>
+                <span>Clinics Ops Lite</span>
+              </div>
+              <div class="legend-color-item" data-service="Clinics Ops Standard">
+                <span class="legend-dot-sq dot-clinics-standard"></span>
+                <span>Clinics Ops Standard</span>
+              </div>
+              <div class="legend-color-item" data-service="Foundation Bundle">
+                <span class="legend-dot-sq dot-foundation-bundle"></span>
+                <span>Foundation Bundle</span>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Main Google Calendar Container -->
+          <div class="calendar-main-stage">
+            <!-- Month Grid View -->
+            <div class="cal-grid-container" id="cal-month-view">
+              <div class="cal-days-header">
+                <div>SUN</div>
+                <div>MON</div>
+                <div>TUE</div>
+                <div>WED</div>
+                <div>THU</div>
+                <div>FRI</div>
+                <div>SAT</div>
+              </div>
+              <div class="cal-month-grid" id="cal-month-grid">
+                <!-- Dynamic day cells injected here -->
+              </div>
+            </div>
+
+            <!-- Week View Container -->
+            <div class="cal-week-container" id="cal-week-view" style="display: none;">
+              <!-- Dynamic week grid -->
+            </div>
+
+            <!-- Agenda View Container -->
+            <div class="cal-agenda-container" id="cal-agenda-view" style="display: none;">
+              <!-- Dynamic agenda list -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================================
+           VIEW 5: PIPELINE AUDIT TRAIL & ACTIVITY HISTORY TAB
+           ======================================================== -->
+      <div class="view-panel" id="view-history" style="display: none;">
+        <!-- Top History Stats & Quick Action Bar -->
+        <div class="history-top-controls">
+          <div class="history-search-row">
+            <div class="search-box">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="history-search-input" placeholder="Search activity by client, VA, deliverable, or feedback notes...">
+              <button class="search-clear-btn" id="history-search-clear" style="display: none;">&times;</button>
+            </div>
+
+            <div class="history-filters-group">
+              <!-- Filter by Action Type -->
+              <div class="filter-item">
+                <label for="history-filter-type">Action:</label>
+                <select id="history-filter-type">
+                  <option value="all">All Activities</option>
+                  <option value="submission">Deliverable Submitted 📤</option>
+                  <option value="approval">Admin Approved ✓</option>
+                  <option value="revision">Revision Requested ↺</option>
+                  <option value="ping">VA Ping / Alert 🔔</option>
+                  <option value="lifecycle">Pipeline Lifecycle ⚙️</option>
+                </select>
+              </div>
+
+              <!-- Filter by Client -->
+              <div class="filter-item">
+                <label for="history-filter-client">Client:</label>
+                <select id="history-filter-client">
+                  <option value="all">All Clients</option>
+                </select>
+              </div>
+
+              <!-- Filter by VA Specialist -->
+              <div class="filter-item">
+                <label for="history-filter-va">VA Specialist:</label>
+                <select id="history-filter-va">
+                  <option value="all">All VAs</option>
+                </select>
+              </div>
+
+              <button class="btn btn-secondary btn-sm" id="btn-clear-history-filters" title="Reset all history filters">Reset</button>
+              <button class="btn btn-secondary btn-sm" id="btn-export-history-json" title="Export audit trail as JSON">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Export
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Content Area -->
+        <div class="history-content-layout">
+          <!-- Timeline List Container -->
+          <div class="history-timeline-stream" id="history-timeline-stream">
+            <!-- Dynamically populated via app.js -->
+          </div>
+
+          <!-- Empty State -->
+          <div class="empty-state" id="history-empty-state" style="display: none;">
+            <div class="empty-icon">📜</div>
+            <h3>No audit trail events match your filters</h3>
+            <p>Try clearing your search terms or filter selections to view the complete pipeline history.</p>
+            <button class="btn btn-secondary btn-sm" id="btn-reset-history-filters-empty">Reset Filters</button>
+          </div>
+        </div>
+
+        <!-- History Pagination Footer -->
+        <div class="pagination-footer" id="history-pagination-footer" style="display: none;">
+          <div class="pagination-info">
+            Showing <span id="history-page-start-idx">0</span>–<span id="history-page-end-idx">0</span> of <span id="history-total-count">0</span> activities
+          </div>
+
+          <div class="pagination-controls">
+            <div class="page-size-selector">
+              <label for="history-page-size-select">Per page:</label>
+              <select id="history-page-size-select" class="page-size-select">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+
+            <div class="pagination-nav-group">
+              <button class="btn-page-nav" id="btn-history-page-prev" title="Previous page" aria-label="Previous page">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              <div class="pagination-pages" id="history-pagination-pages-container"></div>
+              <button class="btn-page-nav" id="btn-history-page-next" title="Next page" aria-label="Next page">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ========================================================
+       MODAL 1: ADD / EDIT CLIENT (Admin)
+       ======================================================== -->
+  <div class="modal-backdrop" id="client-modal" style="display: none;">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2 id="modal-title">Add New Client Account</h2>
+          <p class="modal-subtitle">Configure client info, pipeline stages, and assigned Virtual Assistants.</p>
+        </div>
+        <button class="modal-close-btn" id="btn-close-modal" aria-label="Close modal">&times;</button>
+      </div>
+
+      <form id="client-form">
+        <input type="hidden" id="form-client-id" value="">
+
+        <div class="modal-body">
+          <!-- Basic Client Info -->
+          <div class="form-section-title">1. Client Details</div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="form-client-name">Client / Company Name <span class="required">*</span></label>
+              <input type="text" id="form-client-name" placeholder="e.g. Apex Global Logistics" required>
+            </div>
+            <div class="form-group">
+              <label for="form-client-contact">Primary Contact Name</label>
+              <input type="text" id="form-client-contact" placeholder="e.g. Samantha Vance">
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="form-client-service">Type of Service <span class="required">*</span></label>
+              <select id="form-client-service" required>
+                <option value="Social Starter">Social Starter</option>
+                <option value="Social Growth" selected>Social Growth</option>
+                <option value="Clinics Ops Lite">Clinics Ops Lite</option>
+                <option value="Clinics Ops Standard">Clinics Ops Standard</option>
+                <option value="Foundation Bundle">Foundation Bundle</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="form-client-deadline">Target Deadline <span class="required">*</span></label>
+              <input type="date" id="form-client-deadline" required>
+            </div>
+          </div>
+
+          <!-- VA Pipeline Section -->
+          <div class="form-section-title" style="margin-top: 1.5rem;">
+            <div class="title-with-action">
+              <span>2. VA Section Pipeline</span>
+              <button type="button" class="btn btn-secondary btn-xs" id="btn-add-va-stage">
+                + Add Another VA Stage
+              </button>
+            </div>
+            <p class="form-hint">Assign the chain of registered Virtual Assistants and select who is currently in charge.</p>
+          </div>
+
+          <div class="stage-builder-header">
+            <span>#</span>
+            <span>Registered VA Specialist</span>
+            <span>Role / Deliverable Task</span>
+            <span>Task Deadline</span>
+            <span>Stage Status</span>
+            <span></span>
+          </div>
+
+          <div class="va-stages-builder" id="va-stages-builder">
+            <!-- Dynamic stages builder rows injected here -->
+          </div>
+
+          <!-- Automatic Work Distribution (100% total, divided equally per VA in pipeline) -->
+          <div class="form-section-title" style="margin-top: 1.5rem;">3. Pipeline Work Distribution (100% Total)</div>
+          <div class="pipeline-progress-calc-box">
+            <div class="pipeline-calc-header">
+              <div class="pipeline-calc-title">
+                <span class="calc-icon">⚡</span>
+                <div>
+                  <strong>Automated Equal Distribution (100% Total)</strong>
+                  <p class="pipeline-calc-sub">Each VA in the pipeline accounts for an equal share of 100%. Completion updates as stages are marked Done.</p>
+                </div>
+              </div>
+              <div class="pipeline-calc-pills">
+                <span class="calc-pill calc-weight-pill" id="calc-stage-weight">33.3% per VA</span>
+                <span class="calc-pill calc-status-pill" id="calc-current-progress">0% Done</span>
+              </div>
+            </div>
+            <div class="progress-bar-track" style="height: 7px; margin-top: 0.65rem;">
+              <div class="progress-bar-fill fill-low" id="calc-progress-fill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label for="form-client-notes" style="margin-bottom: 0;">Handoff Notes & Deliverables</label>
+              <span class="char-counter" id="form-client-notes-counter" style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono, monospace);">0 / 400</span>
+            </div>
+            <textarea id="form-client-notes" rows="2" maxlength="400" placeholder="Key instructions, deliverable link, or special client preferences..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-client">Save Client & Pipeline</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 2: VA SUBMIT WORK & DELIVERABLE MODAL (VA Side)
+       ======================================================== -->
+  <div class="modal-backdrop" id="va-submit-modal" style="display: none;">
+    <div class="modal-box modal-md">
+      <div class="modal-header">
+        <div>
+          <h2>Submit Deliverable to Admin</h2>
+          <p class="modal-subtitle" id="submit-modal-client-stage">Client — Stage</p>
+        </div>
+        <button class="modal-close-btn" id="btn-close-submit-modal">&times;</button>
+      </div>
+
+      <form id="va-submit-form">
+        <input type="hidden" id="submit-client-id" value="">
+        <input type="hidden" id="submit-stage-id" value="">
+
+        <div class="modal-body">
+          <div class="alert-info-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>Submissions are sent directly to Admin for review and approval.</span>
+          </div>
+
+          <!-- Deliverable Link -->
+          <div class="form-group" style="margin-top: 1rem;">
+            <label for="submit-link">Deliverable Link:</label>
+            <input type="url" id="submit-link" placeholder="https://docs.google.com/spreadsheets/d/...">
+          </div>
+
+          <!-- File / Picture Upload with Live Preview -->
+          <div class="form-group" style="margin-top: 1rem;">
+            <label>Upload Proof File or Picture / Screenshot:</label>
+            <div class="file-upload-dropzone" id="file-dropzone">
+              <input type="file" id="submit-file-input" accept="image/*,.pdf,.csv,.xlsx,.docx" style="display: none;">
+              <div class="dropzone-content" id="dropzone-prompt">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <div class="dropzone-text">
+                  <strong>Click to upload</strong> or drag & drop picture / file
+                </div>
+                <div class="dropzone-hint">PNG, JPG, PDF, CSV, Excel up to 10MB</div>
+              </div>
+
+              <!-- Upload preview container -->
+              <div class="upload-preview-box" id="upload-preview-box" style="display: none;">
+                <img id="upload-img-preview" src="" alt="Proof Preview" class="upload-thumb">
+                <div class="upload-file-info">
+                  <div class="upload-filename" id="upload-filename">screenshot.png</div>
+                  <div class="upload-filesize" id="upload-filesize">Ready to submit</div>
+                </div>
+                <button type="button" class="btn-remove-file" id="btn-remove-file" title="Remove attached file">&times;</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description Report -->
+          <div class="form-group" style="margin-top: 1rem;">
+            <label for="submit-report-notes">Work Description & Completion Report <span class="required">*</span></label>
+            <textarea id="submit-report-notes" rows="4" placeholder="Detail the tasks accomplished, metrics achieved, anomalies encountered, or specific instructions for admin review..." required></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-submit-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-send-submission">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            Send to Admin for Review
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 3: ADMIN DELIVERABLE REVIEW MODAL (Admin Side)
+       ======================================================== -->
+  <div class="modal-backdrop" id="admin-review-modal" style="display: none;">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <div>
+          <h2>Review VA Deliverable & Quality Check</h2>
+          <p class="modal-subtitle" id="rev-modal-subtitle">Client Name — Stage Details</p>
+        </div>
+        <button class="modal-close-btn" id="btn-close-review-modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="review-details-grid">
+          <!-- Submission metadata -->
+          <div class="rev-meta-panel">
+            <div class="rev-meta-item">
+              <span class="rev-meta-label">Submitted By:</span>
+              <div class="rev-meta-val" id="rev-va-name">--</div>
+            </div>
+            <div class="rev-meta-item">
+              <span class="rev-meta-label">Role / Stage:</span>
+              <div class="rev-meta-val" id="rev-stage-role">--</div>
+            </div>
+            <div class="rev-meta-item">
+              <span class="rev-meta-label">Submitted At:</span>
+              <div class="rev-meta-val text-muted" id="rev-time">--</div>
+            </div>
+            <div class="rev-meta-item" id="rev-link-container">
+              <span class="rev-meta-label">Deliverable URL:</span>
+              <a href="#" target="_blank" class="rev-external-link" id="rev-external-link">Open Deliverable ↗</a>
+            </div>
+          </div>
+
+          <!-- VA Report Description -->
+          <div class="rev-report-panel">
+            <div class="form-section-title">VA Completion Report:</div>
+            <div class="rev-report-text" id="rev-report-text">
+              <!-- Report content injected -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Attached File / Picture Preview -->
+        <div class="rev-attachment-section" id="rev-attachment-section">
+          <div class="form-section-title">Attached Picture / File Proof:</div>
+          <div class="rev-media-wrapper" id="rev-media-wrapper">
+            <!-- Injected image or file card -->
+          </div>
+        </div>
+
+        <!-- Optional Revision Feedback Box (toggled when clicking Request Revision) -->
+        <div class="revision-feedback-box" id="revision-feedback-box" style="display: none;">
+          <label for="rev-feedback-input">Revision Instructions & Feedback for the VA <span class="required">*</span></label>
+          <textarea id="rev-feedback-input" rows="3" placeholder="Explain clearly what needs to be fixed or updated before this can be approved..."></textarea>
+          <div class="revision-actions-row">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-cancel-revision-mode">Back to Review</button>
+            <button type="button" class="btn btn-danger btn-sm" id="btn-confirm-send-revision">Send Revision Request to VA ↺</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" id="rev-modal-default-footer">
+        <button type="button" class="btn btn-secondary" id="btn-close-review-modal-btn">Close</button>
+        <button type="button" class="btn btn-secondary btn-revision" id="btn-trigger-revision-mode">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+          Request Revision
+        </button>
+        <button type="button" class="btn btn-primary btn-accept" id="btn-accept-deliverable">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Accept & Mark Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Lightbox Modal for Full Proof Inspection -->
+  <div class="modal-backdrop" id="image-lightbox-modal" style="display: none; z-index: 250;">
+    <div class="lightbox-wrapper">
+      <button class="lightbox-close-btn" id="btn-close-lightbox">&times;</button>
+      <img id="lightbox-img" src="" alt="Full size proof">
+    </div>
+  </div>
+
+  <!-- Google Calendar Event Details Modal -->
+  <div class="modal-backdrop" id="calendar-event-modal" style="display: none; z-index: 220;">
+    <div class="modal-box modal-md">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="badge-tag" id="cal-event-service-badge">Service Details</span>
+          <h2 id="cal-event-client-name" style="margin-top: 0.25rem;">Client Details</h2>
+        </div>
+        <button class="modal-close-btn" id="btn-close-event-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="cal-event-details-grid">
+          <div class="event-meta-card">
+            <span class="meta-label">Target Deadline</span>
+            <div class="meta-value text-purple" id="cal-event-deadline-date">--</div>
+            <span class="meta-relative-badge" id="cal-event-countdown">--</span>
+          </div>
+          <div class="event-meta-card">
+            <span class="meta-label">Work Progress</span>
+            <div class="meta-value" id="cal-event-progress">0%</div>
+            <div class="progress-bar-track" style="margin-top: 6px;"><div class="progress-bar-fill fill-low" id="cal-event-progress-bar" style="width: 0%;"></div></div>
+          </div>
+        </div>
+
+        <div class="cal-event-section" style="margin-top: 1.25rem;">
+          <span class="meta-label">Assigned VA & Pipeline:</span>
+          <div class="cal-event-stages-list" id="cal-event-stages-list">
+            <!-- Stages summary injected -->
+          </div>
+        </div>
+
+        <div class="cal-event-section" id="cal-event-notes-wrapper" style="margin-top: 1.25rem;">
+          <span class="meta-label">Handoff Notes:</span>
+          <p class="cal-event-notes-text" id="cal-event-notes">No notes available.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-close-event-footer">Close</button>
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-cal-jump-tracker">Open in Tracker</button>
+        <button type="button" class="btn btn-primary btn-sm admin-only" id="btn-cal-edit-client">Edit Client & Deadline</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 5: PING VIRTUAL ASSISTANT
+       ======================================================== -->
+  <div class="modal-backdrop" id="ping-va-modal" style="display: none;">
+    <div class="modal-box modal-md">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="ping-modal-header-badge">
+            <span class="ping-bell-pulse">🔔</span>
+            <h2 id="ping-modal-title">Ping Virtual Assistant</h2>
+          </div>
+          <p class="modal-subtitle">Send an instant alert or priority check-in notification to the assigned VA.</p>
+        </div>
+        <button class="modal-close-btn" id="btn-close-ping-modal" aria-label="Close modal">&times;</button>
+      </div>
+
+      <form id="ping-va-form">
+        <div class="modal-body">
+          <input type="hidden" id="ping-client-id">
+          <input type="hidden" id="ping-va-name">
+          <input type="hidden" id="ping-stage-id">
+          <input type="hidden" id="ping-mode-value" value="active">
+
+          <!-- Ping Target Mode Selector: Active in Task vs Next in Queue -->
+          <div class="ping-mode-selector-box" style="margin-bottom: 1rem;">
+            <label class="form-label-sm" style="display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em; margin-bottom: 0.4rem;">Select Ping Recipient Mode:</label>
+            <div class="ping-mode-toggle" id="ping-mode-toggle">
+              <button type="button" class="ping-mode-btn active" id="btn-ping-mode-active" title="Ping the VA specialist currently in charge of this active task">
+                <span class="ping-mode-dot">●</span>
+                <span class="ping-mode-label">Current VA in Task</span>
+              </button>
+              <button type="button" class="ping-mode-btn" id="btn-ping-mode-next" title="Ping the next VA in queue to prepare for handoff">
+                <span class="ping-mode-dot">➔</span>
+                <span class="ping-mode-label">Next VA in Queue</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Target Recipient Card -->
+          <div class="ping-recipient-card">
+            <div class="ping-va-avatar" id="ping-va-avatar">VA</div>
+            <div class="ping-recipient-details">
+              <div class="ping-recipient-top">
+                <strong id="ping-target-va-name">--</strong>
+                <span class="badge-tag badge-tier-growth" id="ping-target-mode-badge">Active VA in Charge</span>
+              </div>
+              <div class="ping-recipient-sub">
+                <span id="ping-target-client-name">--</span>
+                <span>• Stage: <strong id="ping-target-stage-name">--</strong></span>
+                <span id="ping-target-deadline-wrap" style="display: none;">• Due: <strong id="ping-target-deadline-val">--</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Template Preset Chips -->
+          <div class="form-group" style="margin-top: 1.15rem;">
+            <label id="ping-presets-label">Quick Message Presets:</label>
+            <div class="ping-presets-grid" id="ping-presets-grid">
+              <button type="button" class="ping-preset-pill active" data-msg="Friendly status check-in! How is the current task progressing?">
+                ⚡ Friendly Check-in
+              </button>
+              <button type="button" class="ping-preset-pill" data-msg="Upcoming deadline reminder. Please submit your deliverable proof soon!">
+                ⏳ Deadline Reminder
+              </button>
+              <button type="button" class="ping-preset-pill" data-msg="New feedback provided. Please check the Review Queue for instructions.">
+                📋 Review Queue Update
+              </button>
+              <button type="button" class="ping-preset-pill" data-msg="Priority task nudge: Client requested immediate status update.">
+                🔥 High Priority Nudge
+              </button>
+            </div>
+          </div>
+
+          <!-- Message Textarea -->
+          <div class="form-group" style="margin-top: 1rem;">
+            <label for="ping-custom-message">Ping Notification Message <span class="required">*</span></label>
+            <textarea id="ping-custom-message" rows="3" required placeholder="Type custom check-in message..."></textarea>
+          </div>
+
+          <!-- Urgency Checkbox -->
+          <div class="form-group" style="margin-top: 0.85rem;">
+            <label class="checkbox-label" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: var(--text-secondary);">
+              <input type="checkbox" id="ping-is-urgent" style="width: 16px; height: 16px; accent-color: var(--accent);">
+              <span>Mark as High-Priority Urgent Alert (triggers alert badge)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-ping-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-send-ping">
+            <span>Send Notification Ping 🔔</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 6: ADMIN REGISTER TEAM MEMBER MODAL (Admin Only)
+       ======================================================== -->
+  <div class="modal-backdrop" id="register-user-modal" style="display: none; z-index: 215;">
+    <div class="modal-box modal-md">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2>Register Team Member</h2>
+          <p class="modal-subtitle">Provision a new Administrator or VA Specialist account into the workspace.</p>
+        </div>
+        <button class="modal-close-btn" id="btn-close-register-modal" aria-label="Close modal">&times;</button>
+      </div>
+
+      <form id="admin-register-user-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="admin-reg-name">Full Name <span class="required">*</span></label>
+            <input type="text" id="admin-reg-name" placeholder="e.g. Jordan Rivera" required autocomplete="name">
+          </div>
+
+          <div class="form-group" style="margin-top: 1rem;">
+            <label for="admin-reg-email">Work Email Address <span class="required">*</span></label>
+            <input type="email" id="admin-reg-email" placeholder="jordan@vatrack.io" required autocomplete="email">
+          </div>
+
+          <!-- Account Role Selection Cards -->
+          <div class="form-group" style="margin-top: 1rem;">
+            <label>Select Account Role <span class="required">*</span></label>
+            <div class="auth-role-cards">
+              <label class="auth-role-card is-selected" id="card-role-va">
+                <input type="radio" name="admin-reg-role" value="va" checked>
+                <div class="role-card-content">
+                  <div class="role-card-header">
+                    <span class="role-card-title">VA Specialist</span>
+                    <span class="badge-tag">Contributor</span>
+                  </div>
+                  <p class="role-card-desc">Assigned to pipeline stages, submits deliverable proofs & completion reports.</p>
+                </div>
+              </label>
+
+              <label class="auth-role-card" id="card-role-admin">
+                <input type="radio" name="admin-reg-role" value="admin">
+                <div class="role-card-content">
+                  <div class="role-card-header">
+                    <span class="role-card-title">Administrator</span>
+                    <span class="badge-tag">Full Control</span>
+                  </div>
+                  <p class="role-card-desc">Configure client pipelines, edit deadlines, approve QA reviews, and register team members.</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-row-2" style="margin-top: 1rem;">
+            <div class="form-group">
+              <label for="admin-reg-password">Temporary Password <span class="required">*</span></label>
+              <input type="password" id="admin-reg-password" placeholder="At least 4 chars" minlength="4" required autocomplete="new-password">
+            </div>
+            <div class="form-group">
+              <label for="admin-reg-confirm">Confirm Password <span class="required">*</span></label>
+              <input type="password" id="admin-reg-confirm" placeholder="Repeat password" minlength="4" required autocomplete="new-password">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-register-modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-admin-register">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <line x1="19" y1="8" x2="19" y2="14"></line>
+              <line x1="22" y1="11" x2="16" y2="11"></line>
+            </svg>
+            <span>Create User Account</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 6: CONFIRM DESTRUCTIVE ACTION (Delete Client)
+       ======================================================== -->
+  <div class="modal-backdrop" id="confirm-delete-modal" style="display: none;">
+    <div class="modal-box modal-confirm-box">
+      <div class="confirm-icon-danger">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+      </div>
+      <h3 class="confirm-title" id="confirm-delete-title">Delete Client Pipeline?</h3>
+      <p class="confirm-desc" id="confirm-delete-desc">Are you sure you want to delete this client? All pipeline assignments, stages, and reviews will be permanently removed. This action cannot be undone.</p>
+      <div class="confirm-actions">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-confirm-delete">Cancel</button>
+        <button type="button" class="btn btn-danger" id="btn-execute-confirm-delete">Delete Pipeline</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real-Time Incoming Ping Alert Modal/Banner for VA -->
+  <div id="incoming-ping-overlay" class="incoming-ping-overlay" style="display: none;">
+    <div class="incoming-ping-card" id="incoming-ping-card">
+      <div class="incoming-ping-header">
+        <div class="incoming-ping-bell-wrapper">
+          <span class="incoming-ping-bell-icon">🔔</span>
+        </div>
+        <div class="incoming-ping-title-group">
+          <div class="incoming-ping-sender-line">
+            <strong id="incoming-ping-sender-name">Admin</strong>
+            <span class="incoming-ping-type-pill" id="incoming-ping-type-pill">PRIORITY PING</span>
+          </div>
+          <span class="incoming-ping-timestamp" id="incoming-ping-timestamp">Just now</span>
+        </div>
+        <button type="button" class="incoming-ping-close-btn" onclick="window.vaApp.dismissIncomingPing()" aria-label="Dismiss">&times;</button>
+      </div>
+
+      <div class="incoming-ping-details-box">
+        <div class="incoming-ping-client-row">
+          <span class="incoming-ping-client-badge" id="incoming-ping-client-name">Acme Health Partners</span>
+          <span class="incoming-ping-stage-badge" id="incoming-ping-stage-name">• HIPAA Intake</span>
+        </div>
+        <p class="incoming-ping-message-text" id="incoming-ping-message-text">"Please check the missing document on the HIPAA intake form"</p>
+      </div>
+
+      <div class="incoming-ping-footer-actions">
+        <button type="button" class="btn btn-secondary btn-sm" id="btn-incoming-ping-replay" onclick="window.vaApp.previewPingSound()" title="Replay Chime" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+          <span>🔊 Replay Sound</span>
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="window.vaApp.dismissIncomingPing()">Dismiss</button>
+        <button type="button" class="btn btn-primary btn-sm incoming-ping-ack-btn" id="btn-incoming-ping-ack" onclick="window.vaApp.ackIncomingPingFromCard()">
+          <span>Acknowledge Receipt ✓</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
